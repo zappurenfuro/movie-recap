@@ -1,5 +1,7 @@
 # Movie Recap
 
+[Download the latest release](https://github.com/zappurenfuro/movie-recap/releases/latest)
+
 A skill for Claude Code and Codex that turns a local movie or episode into a full narrated recap and a short Instagram Reel, with separate subtitles, thumbnail frames, and upload copy.
 
 ```text
@@ -64,10 +66,17 @@ python install.py --target both --skill-only
 You can also give Claude Code or Codex this installation prompt:
 
 ```text
-Install the movie-recap skill from https://github.com/zappurenfuro/movie-recap
-for this app. Read README.md and inspect install.py, then run the installer
-with the appropriate --target. Do not render a movie yet.
+Install https://github.com/zappurenfuro/movie-recap for both Claude Code and
+Codex, including all media dependencies and voice/recognition models.
+Clone it into an unused local folder, read README.md, and inspect install.py
+and runtime_setup.py. Use a supported 64-bit Python 3.11–3.13 interpreter
+to run: python install.py --target both
+Do not use --skill-only. Run the installer's end-to-end checks and confirm
+that both installed skills have a valid runtime.json. If an existing skill
+needs updating, use --update to preserve a backup. Do not render a movie yet.
 ```
+
+For only one app, replace `--target both` with `--target claude` or `--target codex`.
 
 The agent still needs permission to access the repository and write to the relevant skill directory. A GitHub upload alone does not install the skill for other users.
 
