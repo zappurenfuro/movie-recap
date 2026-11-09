@@ -59,6 +59,20 @@ class InstallerTests(unittest.TestCase):
             self.assertEqual(self.invoke(), 1)
         self.assertFalse(self.project.exists())
 
+    def test_helpers_installed_and_conflicts_preflighted(self):
+        self.assertEqual(self.invoke('--skill-only'), 0)
+        for app in ['.agents', '.claude']:
+            folder = self.project / app / 'skills/movie-recap'
+            self.assertEqual((folder / 'scripts/run_jobs.py').read_bytes(), (REPO / 'scripts/run_jobs.py').read_bytes())
+            self.assertTrue((folder / 'references/production.md').is_file())
+        helper = self.project / '.agents/skills/movie-recap/scripts/run_jobs.py'
+        helper.write_text('custom helper', encoding='utf8')
+        with self.assertRaises(SystemExit):
+            self.invoke('--skill-only')
+        self.assertEqual(helper.read_text(), 'custom helper')
+        self.assertEqual(self.invoke('--skill-only', '--update'), 0)
+        self.assertEqual(next(helper.parent.glob('run_jobs.py.backup-*')).read_text(), 'custom helper')
+
     def test_verified_runtime_is_registered_for_both_apps(self):
         value = {'status': 'ready', 'manifest_path': str(Path(self.temporary.name) / 'runtime.json')}
         with patch.object(installer, 'setup_runtime', return_value=value):

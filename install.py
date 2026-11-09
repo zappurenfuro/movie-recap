@@ -54,7 +54,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--target', choices=('claude', 'codex', 'both'), default='both')
     parser.add_argument('--project', type=Path, help='Install in this project instead of your home folder')
-    parser.add_argument('--update', action='store_true', help='Back up and replace a different installed SKILL.md')
+    parser.add_argument('--update', action='store_true', help='Back up and replace different installed skill files')
     parser.add_argument('--dry-run', action='store_true', help='Show destinations without writing anything')
     parser.add_argument('--skill-only', action='store_true', help='Install instructions only, without downloading dependencies or models')
     parser.add_argument('--runtime-dir', type=Path, default=Path.home() / '.movie-recap' / 'runtime-v1', help='Shared media runtime directory')
@@ -62,12 +62,17 @@ def main():
     source = Path(__file__).resolve().parent / 'SKILL.md'
     if not source.is_file():
         parser.error('SKILL.md is missing beside install.py. Download or clone the complete repository.')
-    payload = source.read_bytes()
+    sources = [source]
+    for directory in ('scripts', 'references'):
+        folder = source.parent / directory
+        if folder.is_dir():
+            sources.extend(p for p in sorted(folder.rglob('*'))
+                           if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc')
     root = (args.project if args.project else Path.home()).expanduser().resolve()
     targets = ('claude', 'codex') if args.target == 'both' else (args.target,)
-    destinations = [root / ('.claude' if target == 'claude' else '.agents') / 'skills' / 'movie-recap' / 'SKILL.md' for target in targets]
+    destinations = [(root / ('.claude' if target == 'claude' else '.agents') / 'skills' / 'movie-recap' / src.relative_to(source.parent), src.read_bytes()) for target in targets for src in sources]
     # Check every destination before making changes to any target.
-    for dest in destinations:
+    for dest, payload in destinations:
         if dest.exists() and not dest.is_file():
             parser.error(f'Destination is not a file: {dest}')
         if dest.is_file() and dest.read_bytes() != payload and not args.update:
@@ -83,8 +88,8 @@ def main():
             except (RuntimeError, OSError, subprocess.CalledProcessError) as exc:
                 print(f'Setup failed: {exc}\nFix the reported error and rerun the same command. Completed downloads are retained; this run has not changed installed skills.', file=sys.stderr)
                 return 1
-    for dest in destinations:
-        if runtime is not None:
+    for dest, payload in destinations:
+        if runtime is not None and dest.name == 'SKILL.md':
             dest.parent.mkdir(parents=True, exist_ok=True)
             (dest.parent / 'runtime.json').write_text(json.dumps(runtime, indent=2), encoding='utf8')
         if dest.is_file() and dest.read_bytes() == payload:
@@ -96,7 +101,7 @@ def main():
         dest.parent.mkdir(parents=True, exist_ok=True)
         if dest.is_file():
             stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
-            backup = dest.with_name(f'SKILL.md.backup-{stamp}')
+            backup = dest.with_name(f'{dest.name}.backup-{stamp}')
             shutil.copy2(dest, backup)
             print(f'Backup: {backup}')
         dest.write_bytes(payload)
