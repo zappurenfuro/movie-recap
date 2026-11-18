@@ -57,6 +57,8 @@ def main():
     parser.add_argument('--update', action='store_true', help='Back up and replace different installed skill files')
     parser.add_argument('--dry-run', action='store_true', help='Show destinations without writing anything')
     parser.add_argument('--skill-only', action='store_true', help='Install instructions only, without downloading dependencies or models')
+    parser.add_argument('--yes', action='store_true', help='Installation permission was already obtained after reviewing the plan; does not authorize publishing')
+    parser.add_argument('--publishing', choices=('ask', 'local', 'youtube'), default='ask', help='Separate user choice; youtube still requires browser sign-in and destination confirmation')
     parser.add_argument('--runtime-dir', type=Path, default=Path.home() / '.movie-recap' / 'runtime-v1', help='Shared media runtime directory')
     args = parser.parse_args()
     source = Path(__file__).resolve().parent / 'SKILL.md'
@@ -77,6 +79,30 @@ def main():
             parser.error(f'Destination is not a file: {dest}')
         if dest.is_file() and dest.read_bytes() != payload and not args.update:
             parser.error(f'Existing skill differs: {dest}. Use --update to back it up and replace it.')
+    print('Installation plan:')
+    print('Skill destinations:', ', '.join(str(root / ('.claude' if t == 'claude' else '.agents') / 'skills/movie-recap') for t in targets))
+    if args.skill_only:
+        print('Instructions/helpers only; no packages, models or runtime checks.')
+    else:
+        print('Prerequisite: 64-bit Python 3.11-3.13. Isolated runtime:', args.runtime_dir.expanduser().resolve())
+        print((source.parent / 'requirements-runtime.txt').read_text(encoding='utf8').strip())
+        print('Also installs their transitive dependencies, FFmpeg via imageio-ffmpeg, Kokoro v1.0 ONNX/voices, and pinned Whisper base + base.en models.')
+        print('Network: PyPI, GitHub and Hugging Face. Allow roughly 3 GB plus editing space. No paid services, system PATH or CUDA changes.')
+        print('Exact transitive versions depend on platform and package resolution; the list above contains the declared pinned dependencies.')
+    setup_path = root / '.movie-recap' / 'setup.json'
+    publishing = args.publishing
+    prior_preferences = setup_path.is_file() or (root / '.movie-recap' / 'publishing.md').is_file()
+    if not args.dry_run:
+        if not args.yes:
+            if not sys.stdin.isatty():
+                parser.error('Review the plan and ask the user for installation permission, then pass --yes. No changes made.')
+            if input('Install the items above? [y/N] ').strip().lower() not in ('y', 'yes'):
+                print('Installation cancelled. No changes made.')
+                return 1
+        if publishing == 'ask' and not prior_preferences:
+            if not sys.stdin.isatty():
+                parser.error('Separately ask whether the user wants automatic YouTube uploads, then pass --publishing local or --publishing youtube. --yes does not answer this question.')
+            publishing = 'youtube' if input('Enable automatic YouTube uploads after browser sign-in and channel confirmation? [y/N] ').strip().lower() in ('y', 'yes') else 'local'
     runtime = None
     if not args.skill_only:
         runtime_dir = args.runtime_dir.expanduser().resolve()
@@ -106,6 +132,15 @@ def main():
             print(f'Backup: {backup}')
         dest.write_bytes(payload)
         print(f'Installed: {dest}')
+    if not args.dry_run and publishing != 'ask':
+        setup_path.parent.mkdir(parents=True, exist_ok=True)
+        setup_path.write_text(json.dumps({'publishing': 'youtube_pending_signin' if publishing == 'youtube' else 'local'}, indent=2), encoding='utf8')
+        if publishing == 'youtube':
+            print('YouTube setup pending: ask your agent to follow references/publishing.md, open Studio, and hand control to you for sign-in. Nothing has been uploaded or authorized for a specific channel yet.')
+        else:
+            print('Local delivery selected. No automatic uploads.')
+    elif not args.dry_run:
+        print('Existing private publishing preferences preserved.')
     print('Claude Code: /movie-recap Lucky | Codex: $movie-recap Lucky')
     if runtime:
         print('Media runtime verified: FFmpeg, Kokoro am_michael, Whisper, and a narrated test MP4.')

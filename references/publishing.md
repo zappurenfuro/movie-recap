@@ -1,0 +1,21 @@
+# Optional publishing and account privacy
+
+Publishing is opt-in. Reading this skill, installing dependencies or signing in alone does not authorize posting. With no explicit authorization, deliver local files. Never hardcode an author's account as a destination for another user.
+
+## Connect YouTube
+
+1. After the user chooses automatic YouTube uploads, open https://studio.youtube.com/ in the supported visible browser. Ask the user to sign in themselves, including any MFA. Hand off control while they do so. Do not request, read, record or paste passwords, recovery codes, cookies or tokens. Never bypass a login challenge.
+2. Once the user says sign-in is complete, inspect the visible Studio channel identity. Ask them to confirm this destination and whether future recaps should publish full videos and narrated Shorts publicly or use another visibility. Do not silently use an existing signed-in account or publish a test video.
+3. Save their explicit choices only in the applicable private `.movie-recap/publishing.md`, outside the repository (project-local for project installations, home otherwise). Record channel name/ID or URL, approved output types, visibility and standing authorization in plain language. Do not save credentials. If setup.json exists, change its publishing value from `youtube_pending_signin` to `youtube` only after confirmation. Never overwrite unrelated existing platform preferences.
+4. If they want Instagram too, obtain separate explicit authorization, open https://www.instagram.com/ for their own sign-in, verify the account and record only the approved destination privately. YouTube permission does not grant Instagram permission.
+
+## Each authorized production run
+
+- Read the applicable setup.json first. `local` disables automatic uploads; pending sign-in does not authorize a destination. Then read the same location's publishing.md. Existing explicit home preferences may be used when no project setting overrides them. Current user instructions take precedence.
+- Verify the signed-in account against the private destination before any upload. If it differs or authentication expired, pause publishing and hand off sign-in. Continue local work when possible.
+- Finish and validate exports before uploading. Publish only the authorized formats with their selected visibility. Choose the best of ten full-recap thumbnails, attach the English display SRT as a timed YouTube subtitle track, and enter relevant title, description, tags and English video language. Answer paid-promotion and altered/AI-content disclosures accurately for the actual video; never force a false response.
+- Upload the narrated 1080x1920 cut to Shorts and, only if separately authorized, Instagram Reels. Check visible processing/publication state and retrieve each verified link. Do not claim that upload progress means publication is complete.
+- Check for existing uploads before retrying, to avoid duplicates. Report a nonblocking claim accurately. If a video is blocked, inspect the restriction and follow the editorial fallback only where authorized. Remove or replace restricted material with cleared/original material; a shorter, flipped or cropped clip does not establish clearance. Do not file disputes, appeals or delete existing posts without specific authorization. If the revised upload is still blocked, report it instead of repeatedly uploading variants.
+- Keep upload IDs, account details and activity records private. Do not commit browser screenshots, production metadata, local preferences or links identifying a user's channel to the reusable skill repository.
+
+The installer does not provide a browser automation service or OAuth server. Publishing needs an authenticated browser/tool supported by the user's agent host. If unavailable, deliver the upload package and report the connection limitation honestly.

@@ -29,3 +29,15 @@ runtime.json.part
 models/
 checks/
 *.part
+# Private onboarding/account state and local production artifacts.
+/setup.json
+/publishing.md
+/credentials*.json
+/token*.json
+/cookies*
+browser-profile*/
+*.srt
+youtube-upload.txt
+instagram-copy.txt
+narration.txt
+*.log

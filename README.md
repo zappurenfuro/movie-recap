@@ -13,6 +13,27 @@ The agent reads the footage, writes the scripts, generates voiceovers, edits the
 
 ## Install
 
+### Ask your agent to install it
+
+Paste this into Claude Code or Codex:
+
+```text
+Install https://github.com/zappurenfuro/movie-recap for the app I am using.
+Read AGENTS.md, README.md and references/setup.md first. Show me the
+dependencies, models, download requirements and install locations, then ask
+my permission before installing them. Separately ask whether I want automatic
+YouTube uploads or local files only. If I choose YouTube, open Studio, let me
+sign in myself, and confirm my channel and publishing visibility. Keep all
+account information private and outside the repository. Verify the runtime
+and tell me how to invoke the skill. Do not render or upload a movie yet.
+```
+
+The guided setup has two separate choices: permission to install, then optional
+YouTube publishing. No author's channel, branding or account is bundled. See
+[first-time setup](references/setup.md) and [publishing](references/publishing.md).
+
+### Install from a terminal
+
 Requires 64-bit Python **3.11, 3.12, or 3.13**, internet access for initial setup, and Claude Code or Codex. Git is only needed for the clone option. On systems where Python is named `python3`, substitute it for `python` below. No administrator access or GPU is required for the default CPU runtime.
 
 Clone this repository and run the installer:
@@ -31,6 +52,12 @@ python install.py --target codex
 ```
 
 The installer creates a shared runtime in `~/.movie-recap/runtime-v1`, installs the Python dependencies, downloads Kokoro and Whisper models, and generates a short narrated test video. It installs the skill only after runtime checks pass, and places a `runtime.json` beside each installed `SKILL.md` so the agent knows the exact executable and model paths. It does not modify system PATH, install CUDA drivers, upload your films, or start a movie recap.
+
+Before any installation writes or downloads, it prints the plan and asks for
+permission. First setup also asks separately about automatic YouTube uploads.
+Saying yes marks the connection pending; your agent must still open Studio,
+let you sign in and confirm your destination. Passwords and tokens never
+belong in chat or in this repository.
 
 Allow roughly **3 GB of free space** for setup, plus separate space for movie editing. Models total approximately 650 MB; package downloads add more. Download size varies by platform. Completed downloads are reused. Interruptions may require restarting a partial file; rerun the same command to continue setup.
 
@@ -67,16 +94,21 @@ You can also give Claude Code or Codex this installation prompt:
 
 ```text
 Install https://github.com/zappurenfuro/movie-recap for both Claude Code and
-Codex, including all media dependencies and voice/recognition models.
-Clone it into an unused local folder, read README.md, and inspect install.py
-and runtime_setup.py. Use a supported 64-bit Python 3.11–3.13 interpreter
-to run: python install.py --target both
-Do not use --skill-only. Run the installer's end-to-end checks and confirm
-that both installed skills have a valid runtime.json. If an existing skill
-needs updating, use --update to preserve a backup. Do not render a movie yet.
+Codex. Follow references/setup.md: show the dependency plan, wait for my
+installation permission, and separately ask about automatic YouTube uploads.
+If I opt in, follow references/publishing.md and let me sign in myself.
+Verify the runtime. Keep account settings private. Do not render a movie yet.
 ```
 
 For only one app, replace `--target both` with `--target claude` or `--target codex`.
+
+For noninteractive execution, the agent must first obtain both answers in chat,
+then use `--yes --publishing local` or `--yes --publishing youtube`. `--yes`
+approves installation only; it never enables uploads by itself. On updates,
+omitting `--publishing` preserves existing private preferences. An explicit
+`--publishing local` turns automatic publishing off. Settings live in
+`~/.movie-recap/` (or `<project>/.movie-recap/` for project installs), never in
+the repository. Actual publishing requires browser access in the agent host.
 
 The agent still needs permission to access the repository and write to the relevant skill directory. A GitHub upload alone does not install the skill for other users.
 
@@ -136,9 +168,9 @@ The installer includes `scripts/run_jobs.py`, a dependency-aware command runner 
 
 ## What you get
 
-**Full recap:** at least ten minutes, complete story coverage, measured 1.10x narration, 1920 x 1080 output, noncontinuous clips of at most three seconds, occasional stable hard-zoom holds, and no original-film audio. Default picture styling includes a final centered 1.10x zoom and horizontal flip. These are editing choices, not copyright clearance. No logo or burned-in captions.
+**Full recap:** at least ten minutes, complete story coverage, conversational storytelling, measured 1.10x narration, 1920 x 1080 output, separated source excerpts generally around four seconds, occasional stable hard-zoom holds, and no original-film audio. Give important actions and explanations room to land. Default picture styling includes a final centered 1.10x zoom and horizontal flip. These are editing choices, not copyright clearance. No logo or burned-in captions. A blocked upload can receive a separately reviewed fallback edit; no edit guarantees claim removal.
 
-**Reel:** 45–75 seconds, calmer moving shots, original aspect ratio and orientation, consistent narration, and a cutoff before the climax's outcome. Includes matching versions with and without narration. No promised second part.
+**Reel / Short:** 45–75 seconds on a 1080 x 1920 vertical canvas, a proportionally reframed central picture, a selected hook above and readable timed captions below. Calmer moving shots, consistent narration, and a cutoff before the climax's outcome. Includes matching versions with and without narration. No promised second part.
 
 ```text
 Lucky-Full-Recap/
@@ -149,7 +181,7 @@ Lucky-Full-Recap/
   thumbnails/
     thumbnail-01.png
     thumbnail-02.png
-    thumbnail-03.png
+    thumbnail-03.png through thumbnail-10.png
 
 Lucky-Reel-Recap/
   Lucky-recap-with-narration.mp4
@@ -160,7 +192,7 @@ Lucky-Reel-Recap/
   instagram-copy.txt
 ```
 
-TTS subtitles use natural speaking phrases; display subtitles use short readable cues without changing the narration. YouTube copy includes titles, description, chapters, tags, and thumbnail notes. Instagram copy includes a description, hashtags, and optional on-screen hooks. Thumbnails are three actual film frames cropped to 1280 x 720.
+TTS subtitles use natural speaking phrases; display subtitles use short readable cues without changing the narration. YouTube copy includes titles, description, chapters, tags, and thumbnail notes. Instagram copy includes a description, hashtags, and the selected on-screen hook. Ten distinct actual film frames are cropped to 1280 x 720; the agent recommends the strongest thumbnail against the chosen headline.
 
 Quiet separate music may be included. The optional Undertow credit block is supplied for users who manually add that song; the song itself is not bundled or automatically inserted.
 
@@ -175,11 +207,11 @@ python install.py --target both --update
 
 Edit `SKILL.md` to change the workflow and rerun the installer with `--update` to synchronize installed copies. Edit the full and Reel sections separately so settings do not leak between formats. Keep your media and generated exports outside this repository.
 
-The agent verifies decoding, timing, subtitle preservation and sampled scene alignment, and reports any review limitations. Review the final videos before publishing. This skill does not automatically upload videos or submit copyright disputes.
+The agent verifies decoding, timing, subtitle preservation and sampled scene alignment, and reports review limitations. Local delivery is the default. If you explicitly enable automatic publishing and confirm your destination, it uploads verified full videos and narrated Shorts to your YouTube channel with the selected thumbnail, English subtitles and metadata. Instagram requires separate opt-in. You can override standing authorization for any run. No automatic copyright disputes or appeals are included.
 
 ## Repository contents and testing
 
-Publish `SKILL.md`, `README.md`, `install.py`, `runtime_setup.py`, `requirements-runtime.txt`, `.gitignore`, `scripts/`, `references/`, and `tests/`. The installer copies the skill and its scripts/references into each selected app. Do not upload your installed runtime, runtime.json, models, media, or Python cache files.
+Publish `SKILL.md`, `README.md`, `AGENTS.md`, `install.py`, `runtime_setup.py`, `requirements-runtime.txt`, `.gitignore`, `scripts/`, `references/`, and `tests/`. The installer copies the skill and its scripts/references into each selected app. Release archives contain reviewed tracked files only. Never publish installed runtimes, runtime.json, models, media, account preferences, channel IDs, cookies, tokens, browser profiles, personal paths or Python caches.
 
 Run the offline installer checks with:
 

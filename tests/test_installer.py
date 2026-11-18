@@ -3,6 +3,7 @@ import contextlib
 import hashlib
 import importlib.util
 import io
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -29,12 +30,60 @@ class InstallerTests(unittest.TestCase):
         self.project = Path(self.temporary.name) / 'project with spaces'
 
     def invoke(self, *args):
+        return self.invoke_raw('--yes', '--publishing', 'local', *args)
+
+    def invoke_raw(self, *args):
         with patch('sys.argv', ['install.py', '--project', str(self.project), *args]), contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
             return installer.main()
 
+    def test_noninteractive_requires_installation_consent(self):
+        with patch('sys.stdin.isatty', return_value=False), patch.object(installer, 'setup_runtime') as setup:
+            with self.assertRaises(SystemExit):
+                self.invoke_raw('--publishing', 'local')
+            setup.assert_not_called()
+        self.assertFalse(self.project.exists())
+
+    def test_yes_alone_does_not_authorize_publishing(self):
+        with patch('sys.stdin.isatty', return_value=False), patch.object(installer, 'setup_runtime') as setup:
+            with self.assertRaises(SystemExit):
+                self.invoke_raw('--yes')
+            setup.assert_not_called()
+        self.assertFalse(self.project.exists())
+
+    def test_declining_installation_writes_nothing(self):
+        with patch('sys.stdin.isatty', return_value=True), patch('builtins.input', return_value='no'), patch.object(installer, 'setup_runtime') as setup:
+            self.assertEqual(self.invoke_raw(), 1)
+            setup.assert_not_called()
+        self.assertFalse(self.project.exists())
+
+    def test_interactive_choices_are_separate_and_youtube_is_pending(self):
+        with patch('sys.stdin.isatty', return_value=True), patch('builtins.input', side_effect=['yes', 'yes']) as question:
+            self.assertEqual(self.invoke_raw('--skill-only'), 0)
+            self.assertEqual(question.call_count, 2)
+        state = json.loads((self.project / '.movie-recap/setup.json').read_text())
+        self.assertEqual(state, {'publishing': 'youtube_pending_signin'})
+        self.assertFalse((self.project / '.movie-recap/publishing.md').exists())
+
+    def test_existing_private_preferences_preserved_on_update(self):
+        private = self.project / '.movie-recap/publishing.md'
+        private.parent.mkdir(parents=True)
+        private.write_text('Private approved destination', encoding='utf8')
+        with patch('sys.stdin.isatty', return_value=False):
+            self.assertEqual(self.invoke_raw('--yes', '--skill-only'), 0)
+        self.assertEqual(private.read_text(), 'Private approved destination')
+        self.assertFalse((private.parent / 'setup.json').exists())
+        self.assertEqual(self.invoke_raw('--yes', '--skill-only', '--publishing', 'local'), 0)
+        self.assertEqual(json.loads((private.parent / 'setup.json').read_text()), {'publishing': 'local'})
+        self.assertEqual(private.read_text(), 'Private approved destination')
+
+    def test_pending_publishing_not_saved_on_runtime_failure(self):
+        with patch.object(installer, 'setup_runtime', side_effect=RuntimeError('offline')):
+            self.assertEqual(self.invoke_raw('--yes', '--publishing', 'youtube'), 1)
+        self.assertFalse(self.project.exists())
+
     def test_dry_run_does_not_download_or_write(self):
         with patch.object(installer, 'setup_runtime') as setup:
-            self.assertEqual(self.invoke('--dry-run'), 0)
+            self.assertEqual(self.invoke_raw('--dry-run'), 0)
             setup.assert_not_called()
         self.assertFalse(self.project.exists())
 
