@@ -168,7 +168,7 @@ The installer includes `scripts/run_jobs.py`, a dependency-aware command runner 
 
 ## What you get
 
-**Full recap:** at least ten minutes, complete story coverage, conversational storytelling, measured 1.10x narration, 1920 x 1080 output, separated source excerpts generally around four seconds, occasional stable hard-zoom holds, and no original-film audio. Give important actions and explanations room to land. Default picture styling includes a final centered 1.10x zoom and horizontal flip. These are editing choices, not copyright clearance. No logo or burned-in captions. A blocked upload can receive a separately reviewed fallback edit; no edit guarantees claim removal.
+**Full recap:** at least ten minutes, complete story coverage, conversational storytelling, measured 1.10x narration, 1920 x 1080 output, separated source excerpts generally around four seconds, occasional stable hard-zoom holds, and no original-film audio. Give important actions and explanations room to land. Default picture styling includes a final centered 1.10x zoom and horizontal flip. These are editing choices, not copyright clearance. No logo or burned-in captions. For authorized uploads, retain the original edit when Studio reports a regional block affecting strictly less than 10% of the overall audience. Ask before proceeding when audience impact is unavailable. Larger or worldwide blocks can receive a separately reviewed fallback; no edit guarantees claim removal.
 
 **Reel / Short:** 45–75 seconds on a 1080 x 1920 vertical canvas, a proportionally reframed central picture, a selected hook above and readable timed captions below. Calmer moving shots, consistent narration, and a cutoff before the climax's outcome. Includes matching versions with and without narration. No promised second part.
 
@@ -192,7 +192,7 @@ Lucky-Reel-Recap/
   instagram-copy.txt
 ```
 
-TTS subtitles use natural speaking phrases; display subtitles use short readable cues without changing the narration. YouTube copy includes titles, description, chapters, tags, and thumbnail notes. Instagram copy includes a description, hashtags, and the selected on-screen hook. Ten distinct actual film frames are cropped to 1280 x 720; the agent recommends the strongest thumbnail against the chosen headline.
+TTS subtitles use natural speaking phrases; display subtitles use short readable cues without changing the narration. YouTube copy includes titles, description, chapters, tags, and thumbnail notes. Instagram copy includes a description, hashtags, and the selected on-screen hook. Ten distinct actual film frames are cropped to 1280 x 720; the agent selects three distinct options for thumbnail-only YouTube A/B testing against one fixed headline, plus a preferred default if testing is unavailable.
 
 Quiet separate music may be included. The optional Undertow credit block is supplied for users who manually add that song; the song itself is not bundled or automatically inserted.
 
@@ -207,7 +207,7 @@ python install.py --target both --update
 
 Edit `SKILL.md` to change the workflow and rerun the installer with `--update` to synchronize installed copies. Edit the full and Reel sections separately so settings do not leak between formats. Keep your media and generated exports outside this repository.
 
-The agent verifies decoding, timing, subtitle preservation and sampled scene alignment, and reports review limitations. Local delivery is the default. If you explicitly enable automatic publishing and confirm your destination, it uploads verified full videos and narrated Shorts to your YouTube channel with the selected thumbnail, English subtitles and metadata. Instagram requires separate opt-in. You can override standing authorization for any run. No automatic copyright disputes or appeals are included.
+The agent verifies decoding, timing, subtitle preservation and sampled scene alignment, and reports review limitations. Local delivery is the default. If you explicitly enable automatic publishing and confirm your destination, it uploads verified full videos and narrated Shorts to your YouTube channel with relevant metadata. Long-form videos receive English subtitles and three-thumbnail A/B testing. It verifies the saved test status rather than assuming that uploaded images mean the test is running. Instagram requires separate opt-in. You can override standing authorization for any run. No automatic copyright disputes or appeals are included.
 
 ## Repository contents and testing
 

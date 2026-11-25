@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Use exactly three distinct thumbnails in a thumbnail-only A/B test for authorized long-form YouTube uploads, keeping the title fixed and verifying the saved test status. Use the preferred default if testing is unavailable.
+- Preserve the original edit when Studio reports a regional block affecting strictly less than 10% of the overall audience. Ask when audience impact is unavailable; do not infer it from country counts.
+- Keep public onboarding, private publishing opt-in and account-data exclusions intact.
+
 ## 1.2.0
 
 - Add first-install guidance for people who paste the repository URL into their coding agent.
